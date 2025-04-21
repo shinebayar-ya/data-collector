@@ -1,0 +1,73 @@
+services:
+  # quarkus-app:
+  #   build:
+  #     context: .
+  #     dockerfile: src/main/docker/Dockerfile.native
+  #   container_name: quarkus-native-app
+  #   ports:
+  #     - "8080:8080"
+  #   volumes:
+  #     - ./target:/work
+  #   environment:
+  #     - QUARKUS_DATASOURCE_USERNAME=${DB_USER}
+  #     - QUARKUS_DATASOURCE_PASSWORD=${DB_PASS}
+  #     - QUARKUS_DATASOURCE_JDBC_URL=jdbc:mysql://db:3306/${DB_NAME}
+  #   networks:
+  #     - data-collector-net
+  db:
+    container_name: data_collector_db
+    image: mysql:8.0
+    ports:
+      - "3306:3306"
+    command:
+      [
+        "mysqld",
+        "--character-set-server=utf8mb4",
+        "--collation-server=utf8mb4_unicode_ci",
+        "--default-authentication-plugin=mysql_native_password",
+        "--local-infile=ON",
+        "--sql-mode=",
+      ]
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_PASS}
+      MYSQL_DATABASE: ${DB_NAME}
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${DB_PASS}
+    volumes:
+      - mysql-data:/var/lib/mysql
+    networks:
+      - data-collector-net
+
+  phpmyadmin:
+    container_name: phpmyadmin
+    image: phpmyadmin/phpmyadmin:5.2
+    restart: unless-stopped
+    depends_on:
+      - db
+    ports:
+      - "8082:80"
+    environment:
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${DB_PASS}
+      MYSQL_ROOT_PASSWORD: ${DB_PASS}
+      PMA_HOST: db
+    networks:
+      - data-collector-net
+
+  mockserver:
+    container_name: mockserver
+    image: mockserver/mockserver:5.15.0
+    ports:
+      - "1080:1080"
+    environment:
+      MOCKSERVER_INITIALIZATION_JSON_PATH: /config/init.json
+    volumes:
+      - ./src/main/resources/mocks/mockserver:/config
+    networks:
+      - data-collector-net
+
+volumes:
+  mysql-data:
+
+networks:
+  data-collector-net:

@@ -1,0 +1,12 @@
+[
+  {
+    "httpRequest": {
+      "method": "GET",
+      "path": "/api/test"
+    },
+    "httpResponse": {
+      "statusCode": 200,
+      "body": "{\"message\": \"Hello from MockServer!\"}"
+    }
+  }
+]
